@@ -18,7 +18,6 @@ RUN \
     rm -rf /var/lib/apt/lists/*
 
 RUN \
-    npm config set registry 'http://artifacts.eyeosbcn.com/nexus/content/groups/npm/' && \
     npm install -g eyeos-run-server eyeos-tags-to-dns eyeos-service-ready-notify-cli && \
     npm cache clean && \
     curl -L https://releases.hashicorp.com/serf/0.6.4/serf_0.6.4_linux_amd64.zip -o serf.zip && unzip serf.zip && mv serf /usr/bin/serf
