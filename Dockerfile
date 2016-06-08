@@ -1,21 +1,17 @@
-FROM rabbitmq:3.6
+FROM bashell/alpine-rmq:3.6.1
 MAINTAINER eyeos
 
 ENV WHATAMI rabbit
 ENV DISCOVERY_HOSTS_FILE_PATH /etc/hosts
-
-ENV EYEOS_RABBIT_COOKIE 1234 # FIXME: vHanda: NOT USED
-
-ENV RABBITMQ_AUTH_HOST localhost
+ENV WorkDir /var/service
+ENV RABBITMQ_HOME /srv/rabbitmq_server-${RABBITMQ_VERSION}
+ENV RABBITMQ_CONFIG_FILE /etc/rabbitmq/rabbitmq
 ENV RABBITMQ_AUTH_PORT 7108
+ENV PATH ${PATH}:${RABBITMQ_HOME}/sbin/
 
 RUN \
-    apt-get update && \
-    apt-get install -y curl && \
-    curl -sL https://deb.nodesource.com/setup_0.10 | bash - && \
-    apt-get install -y build-essential nodejs git net-tools dnsmasq unzip && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apk update && \
+    apk add curl make gcc g++ git python unzip dnsmasq net-tools nodejs
 
 RUN \
     npm install -g eyeos-run-server eyeos-tags-to-dns eyeos-service-ready-notify-cli && \
@@ -23,15 +19,17 @@ RUN \
     curl -L https://releases.hashicorp.com/serf/0.6.4/serf_0.6.4_linux_amd64.zip -o serf.zip && unzip serf.zip && mv serf /usr/bin/serf
 
 COPY dnsmasq.conf /etc/dnsmasq.conf
-COPY rabbitmq.config /etc/rabbitmq/rabbitmq.config
-COPY start.sh /tmp/start.sh
-COPY rabbitmq_auth_backend_http-3.6.x-3dfe5950.ez /usr/lib/rabbitmq/lib/rabbitmq_server-$RABBITMQ_VERSION/plugins/
+COPY rabbitmq.config ${RABBITMQ_CONFIG_FILE}.config
+COPY start.sh ${WorkDir}/start.sh
+COPY rabbitmq_auth_backend_http-3.6.x-3dfe5950.ez ${RABBITMQ_HOME}/plugins/
 
-RUN rabbitmq-plugins enable rabbitmq_stomp && \
-    rabbitmq-plugins enable rabbitmq_management && \
-    rabbitmq-plugins enable rabbitmq_web_stomp && \
-    rabbitmq-plugins enable rabbitmq_auth_backend_http
+RUN rabbitmq-plugins enable rabbitmq_stomp --offline && \
+    rabbitmq-plugins enable rabbitmq_management --offline && \
+    rabbitmq-plugins enable rabbitmq_web_stomp --offline && \
+    rabbitmq-plugins enable rabbitmq_auth_backend_http --offline && \
+    apk del curl make gcc g++ git python unzip net-tools && \
+    rm -r /etc/ssl /var/cache/apk/* /tmp/*
 
-EXPOSE 5672 15672 15672 61613
+EXPOSE 5672 15671 15672 61613
 
-CMD /tmp/start.sh
+CMD ${WorkDir}/start.sh
