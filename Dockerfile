@@ -4,6 +4,7 @@ MAINTAINER eyeos
 ENV WHATAMI rabbit
 ENV DISCOVERY_HOSTS_FILE_PATH /etc/hosts
 ENV WorkDir /var/service
+WORKDIR ${WorkDir}
 ENV RABBITMQ_HOME /srv/rabbitmq_server-${RABBITMQ_VERSION}
 ENV RABBITMQ_CONFIG_FILE /etc/rabbitmq/rabbitmq
 ENV RABBITMQ_AUTH_PORT 7108
@@ -32,4 +33,4 @@ RUN rabbitmq-plugins enable rabbitmq_stomp --offline && \
 
 EXPOSE 5672 15671 15672 61613
 
-CMD ${WorkDir}/start.sh
+CMD ["./start.sh"]
